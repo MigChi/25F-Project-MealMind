@@ -3,6 +3,7 @@ from backend.db_connection import db
 
 analytics_bp = Blueprint("analytics_bp", __name__)
 
+
 # --------------- System Metrics & Alerts --------------------
 
 

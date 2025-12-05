@@ -3,6 +3,7 @@ from backend.db_connection import db
 
 profiles_plans_bp = Blueprint("profiles_plans_bp", __name__)
 
+
 # ---------------- Diet Profile (UsersBudgetProfile) ------------------
 
 
