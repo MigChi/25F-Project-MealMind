@@ -4,38 +4,63 @@ logger = logging.getLogger(__name__)
 import streamlit as st
 from modules.nav import SideBarLinks
 
-st.set_page_config(layout = 'wide')
-
-# Show appropriate sidebar links for the role of the currently logged in user
 SideBarLinks()
 
-st.title(f"Welcome USAID Worker, {st.session_state['first_name']}.")
+st.title('Beginner Cook Dashboard')
+st.write('Simple meal planning for healthy eating on a budget')
+
+st.write(f"### Hi {st.session_state['first_name']}! Let\'s plan some easy, healthy meals.")
+
+logger.info("Professional/Beginner Cook Home Page")
+
 st.write('')
 st.write('')
-st.write('### What would you like to do today?')
 
-if st.button('View NGO Directory', 
-             type='primary',
-             use_container_width=True):
-  st.switch_page('pages/14_NGO_Directory.py')
 
-if st.button('Add New NGO', 
-             type='primary',
-             use_container_width=True):
-  st.switch_page('pages/15_Add_NGO.py')
+# Navigation to feature pages
+st.subheader("What do you need help with?")
 
-if st.button('Predict Value Based on Regression Model', 
-             type='primary',
-             use_container_width=True):
-  st.switch_page('pages/11_Prediction.py')
+col1, col2, col3 = st.columns(3)
 
-if st.button('View the Simple API Demo', 
-             type='primary',
-             use_container_width=True):
-  st.switch_page('pages/12_API_Test.py')
+with col1:
+    if st.button('Weekly Groceries',
+                 type='primary',
+                 use_container_width=True):
+        st.switch_page('pages/11_Weekly_Groceries.py')
+    st.caption("Track what you bought and avoid duplicates")
 
-if st.button("View Classification Demo",
-             type='primary',
-             use_container_width=True):
-  st.switch_page('pages/13_Classification.py')
-  
+with col2:
+    if st.button('Meal Plan Generator',
+                 type='primary',
+                 use_container_width=True):
+        st.switch_page('pages/12_Meal_Plan_Generator.py')
+    st.caption("Auto-generate a simple weekly plan")
+
+with col3:
+    if st.button('Budget Meal Finder',
+                 type='primary',
+                 use_container_width=True):
+        st.switch_page('pages/13_Budget_Meal_Finder.py')
+    st.caption("Find meals within your budget")
+
+st.write('')
+st.write('')
+
+# This week's plan preview
+st.subheader("This Week's Meal Plan")
+
+st.write("**Monday:** Chicken Stir Fry with Rice")
+st.write("**Tuesday:** Pasta with Marinara and Salad")
+st.write("**Wednesday:** Baked Salmon with Roasted Vegetables")
+st.write("**Thursday:** Black Bean Tacos")
+st.write("**Friday:** Leftovers or Easy Meal")
+
+st.caption("Generated based on your budget and preferences")
+
+st.write('')
+st.write('')
+
+# Reminders
+st.subheader("Reminders")
+st.warning("Bell peppers expire in 2 days - use for stir fry tonight!")
+st.info("You have all ingredients for Chicken Stir Fry ready to cook")

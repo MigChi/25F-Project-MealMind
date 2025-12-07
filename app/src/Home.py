@@ -75,5 +75,14 @@ if st.button('Act as System Administrator',
     st.session_state['first_name'] = 'SysAdmin'
     st.switch_page('pages/20_Admin_Home.py')
 
+if st.button('Act as Taylor, a Data Analyst', 
+             type='primary', 
+             use_container_width=True):
+    st.session_state['authenticated'] = True
+    st.session_state['role'] = 'data_analyst'
+    st.session_state['first_name'] = 'Taylor'
+    logger.info("Logging in as Data Analyst Persona")
+    st.switch_page('pages/30_Analyst_Home.py')
+
 
 

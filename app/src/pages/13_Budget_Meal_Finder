@@ -1,0 +1,90 @@
+import logging
+logger = logging.getLogger(__name__)
+
+import streamlit as st
+from modules.nav import SideBarLinks
+import requests
+
+SideBarLinks()
+
+st.title('Budget Meal Finder')
+st.write('Find meals that fit your budget with step-by-step instructions')
+
+logger.info("Budget Meal Finder page")
+
+API_BASE_URL = "http://api:4000"
+
+if st.button("Back to Dashboard"):
+    st.switch_page('pages/10_USAID_Worker_Home.py')
+
+st.write('')
+st.write('')
+
+# User Story 4: Find meals within budget
+st.subheader("Find Meals Within Your Budget")
+st.caption("See meals that won't break the bank")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    max_cost = st.slider("Max cost per serving", min_value=2, max_value=15, value=8, step=1)
+    st.caption(f"Under ${max_cost} per serving")
+
+with col2:
+    servings = st.number_input("Number of servings", min_value=1, max_value=6, value=2)
+    total_budget = max_cost * servings
+    st.caption(f"Total: ${total_budget:.2f}")
+
+with col3:
+    meal_type = st.selectbox("Meal type", ["Any", "Breakfast", "Lunch", "Dinner"])
+
+if st.button("Find Budget Meals", type="primary", use_container_width=True):
+    st.session_state['search_budget'] = max_cost
+    st.rerun()
+
+st.write('')
+st.write('')
+
+# Display budget-friendly meals
+if st.session_state.get('search_budget'):
+    st.subheader(f"Meals Under ${st.session_state['search_budget']} per Serving")
+    
+    try:
+        response = requests.get(f"{API_BASE_URL}/recipes", params={"difficulty": })
+        meals = response.json()
+        
+        # Display each meal
+        for meal in meals:
+            with st.container():
+                col1, col2 = st.columns([3, 1])
+                
+                with col1:
+                    st.write(f"### {meal['name']}")
+                    st.write(f"**${meal['cost_per_serving']:.2f} per serving** | "
+                            f"Total: ${meal['total_cost']:.2f} | "
+                            f"{meal['prep_time']} min | "
+                            f"{meal['difficulty']}")
+                    
+                    # Show if within budget
+                    if meal['cost_per_serving'] <= max_cost:
+                        st.success("Within your budget")
+                    else:
+                        st.warning("Slightly over budget")
+                
+                with col2:
+                    # User Story 6: View step-by-step instructions
+                    if st.button("View Instructions", key=f"view_{meal['recipe_id']}"):
+                        st.session_state['selected_recipe_id'] = meal['recipe_id']
+                        st.session_state['selected_recipe'] = meal
+                        st.rerun()
+                    
+                    if st.button("Add to Plan", key=f"add_{meal['recipe_id']}"):
+                        st.success("Added to your meal plan!")
+                
+                st.divider()
+                
+    except Exception as e:
+        st.error(f"Error loading meals: {str(e)}")
+
+st.write('')
+st.write('')
