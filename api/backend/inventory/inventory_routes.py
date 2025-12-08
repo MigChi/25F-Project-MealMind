@@ -5,9 +5,6 @@ from backend.db_connection import db
 
 inventory_bp = Blueprint("inventory_bp", __name__)
 
-
-
-
 # ---------------------------------------------------------
 # Helper: normalize added_date to YYYY-MM-DD for MySQL
 # ---------------------------------------------------------
@@ -33,8 +30,6 @@ def _normalize_added_date(raw: str | None) -> str | None:
     if len(s) >= 10 and s[4] == "-" and s[7] == "-":
         return s[:10]
 
-
-    # Try RFC1123: 'Mon, 08 Dec 2025 00:00:00 GMT'
     try:
         dt = datetime.strptime(s, "%a, %d %b %Y %H:%M:%S GMT")
         return dt.date().isoformat()
@@ -51,9 +46,6 @@ def _normalize_added_date(raw: str | None) -> str | None:
             f"_normalize_added_date: could not parse '{raw}', using as-is"
         )
         return raw
-
-
-
 
 # ---------------------------------------------------------
 # GET all inventory items for a user
@@ -96,8 +88,6 @@ def get_inventory_items():
     except Exception as e:
         current_app.logger.error(f"Error in get_inventory_items: {e}")
         return jsonify({"error": str(e)}), 500
-
-
 
 
 # ---------------------------------------------------------

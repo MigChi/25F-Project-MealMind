@@ -47,7 +47,6 @@ def _analyst_links():
 
 
 def SideBarLinks(show_home=True):
-    # Logo at top (replace with your AI-generated logo file)
     st.sidebar.image("assets/meal_mind.png", width=150)
 
     if show_home:
