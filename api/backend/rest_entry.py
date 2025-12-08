@@ -11,6 +11,7 @@ from backend.inventory.inventory_routes import inventory_bp
 from backend.recipes.recipe_routes import recipes_bp
 from backend.profiles_plans.profile_plan_routes import profiles_plans_bp
 from backend.analytics.analytics_routes import analytics_bp
+from backend.ingredient.ingredients_routes import ingredients_bp
 
 
 def create_app():
@@ -39,5 +40,6 @@ def create_app():
     app.register_blueprint(recipes_bp)                 # /recipes..., /favorite-recipes...
     app.register_blueprint(profiles_plans_bp)          # /diet-profile, /budget-profile, /meal-plans...
     app.register_blueprint(analytics_bp)               # /system-metrics, /waste-statistics, etc.
+    app.register_blueprint(ingredients_bp)
 
     return app

@@ -1,88 +1,92 @@
-##################################################
-# This is the main/entry-point file for the 
-# sample application for your project
-##################################################
-
-# Set up basic logging infrastructure
-import logging
-logging.basicConfig(format='%(filename)s:%(lineno)s:%(levelname)s -- %(message)s', level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# import the main streamlit library as well
-# as SideBarLinks function from src/modules folder
 import streamlit as st
-from modules.nav import SideBarLinks
 
-# streamlit supports reguarl and wide layout (how the controls
-# are organized/displayed on the screen).
-st.set_page_config(layout = 'wide')
+st.set_page_config(page_title="MealMind", page_icon="🥗")
 
-# If a user is at this page, we assume they are not 
-# authenticated.  So we change the 'authenticated' value
-# in the streamlit session_state to false. 
-st.session_state['authenticated'] = False
+# --- Mock users per persona (these user_ids should exist in your mock data if possible) ---
+STUDENT_USERS = [
+    {"id": 1, "first_name": "Ava", "full_name": "Ava Torres"},
+    {"id": 2, "first_name": "Liam", "full_name": "Liam Chen"},
+]
 
-# Use the SideBarLinks function from src/modules/nav.py to control
-# the links displayed on the left-side panel. 
-# IMPORTANT: ensure src/.streamlit/config.toml sets
-# showSidebarNavigation = false in the [client] section
-SideBarLinks(show_home=True)
+HEALTH_USERS = [
+    {"id": 3, "first_name": "Jordan", "full_name": "Jordan Patel"},
+    {"id": 4, "first_name": "Riley", "full_name": "Riley Gomez"},
+]
 
-# ***************************************************
-#    The major content of this page
-# ***************************************************
+ADMIN_USERS = [
+    {"id": 10, "first_name": "Maya", "full_name": "Maya Rodriguez"},
+]
 
-# set the title of the page and provide a simple prompt. 
-logger.info("Loading the Home page of the app")
-st.title('CS 3200 Project Template')
-st.write('\n\n')
-# st.write('### Overview:')
-# st.write('\n')
-st.write('#### HI! As which user would you like to log in?')
+ANALYST_USERS = [
+    {"id": 20, "first_name": "Samuel", "full_name": "Samuel Lee"},
+]
 
-# For each of the user personas for which we are implementing
-# functionality, we put a button on the screen that the user 
-# can click to MIMIC logging in as that mock user. 
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+    st.session_state["role"] = None
+    st.session_state["user"] = None
 
-if st.button("Act as John, a Political Strategy Advisor", 
-            type = 'primary', 
-            use_container_width=True):
-    # when user clicks the button, they are now considered authenticated
-    st.session_state['authenticated'] = True
-    # we set the role of the current user
-    st.session_state['role'] = 'pol_strat_advisor'
-    # we add the first name of the user (so it can be displayed on 
-    # subsequent pages). 
-    st.session_state['first_name'] = 'John'
-    # finally, we ask streamlit to switch to another page, in this case, the 
-    # landing page for this particular user type
-    logger.info("Logging in as Political Strategy Advisor Persona")
-    st.switch_page('pages/00_Pol_Strat_Home.py')
+st.title("🥗 MealMind")
+st.write("Smart meal planning and food-waste reduction — pick a role to explore the app.")
 
-if st.button('Act as Mohammad, an USAID worker', 
-            type = 'primary', 
-            use_container_width=True):
-    st.session_state['authenticated'] = True
-    st.session_state['role'] = 'usaid_worker'
-    st.session_state['first_name'] = 'Mohammad'
-    st.switch_page('pages/10_USAID_Worker_Home.py')
+col1, col2 = st.columns(2)
+col3, col4 = st.columns(2)
 
-if st.button('Act as System Administrator', 
-            type = 'primary', 
-            use_container_width=True):
-    st.session_state['authenticated'] = True
-    st.session_state['role'] = 'administrator'
-    st.session_state['first_name'] = 'SysAdmin'
-    st.switch_page('pages/20_Admin_Home.py')
+with col1:
+    st.subheader("🧑‍🎓 Student Cook (Ava)")
+    student_choice = st.selectbox(
+        "Student users",
+        STUDENT_USERS,
+        format_func=lambda u: u["full_name"],
+        key="student_select",
+    )
+    if st.button("Login as Student", key="login_student", use_container_width=True):
+        st.session_state["authenticated"] = True
+        st.session_state["role"] = "student"
+        st.session_state["user"] = student_choice
+        st.switch_page("pages/00_Ava_Home.py")
 
-if st.button('Act as Taylor, a Data Analyst', 
-             type='primary', 
-             use_container_width=True):
-    st.session_state['authenticated'] = True
-    st.session_state['role'] = 'data_analyst'
-    st.session_state['first_name'] = 'Taylor'
-    logger.info("Logging in as Data Analyst Persona")
-    st.switch_page('pages/30_Analyst_Home.py')
+with col2:
+    st.subheader("💪 Health-Focused Professional (Jordan)")
+    health_choice = st.selectbox(
+        "Health users",
+        HEALTH_USERS,
+        format_func=lambda u: u["full_name"],
+        key="health_select",
+    )
+    if st.button("Login as Health User", key="login_health", use_container_width=True):
+        st.session_state["authenticated"] = True
+        st.session_state["role"] = "health"
+        st.session_state["user"] = health_choice
+        st.switch_page("pages/10_Jordan_Home.py")
 
+with col3:
+    st.subheader("🛠️ System Administrator (Maya)")
+    admin_choice = st.selectbox(
+        "Admin users",
+        ADMIN_USERS,
+        format_func=lambda u: u["full_name"],
+        key="admin_select",
+    )
+    if st.button("Login as Admin", key="login_admin", use_container_width=True):
+        st.session_state["authenticated"] = True
+        st.session_state["role"] = "admin"
+        st.session_state["user"] = admin_choice
+        st.switch_page("pages/20_Maya_Home.py")
 
+with col4:
+    st.subheader("📊 Data Analyst (Samuel)")
+    analyst_choice = st.selectbox(
+        "Analyst users",
+        ANALYST_USERS,
+        format_func=lambda u: u["full_name"],
+        key="analyst_select",
+    )
+    if st.button("Login as Analyst", key="login_analyst", use_container_width=True):
+        st.session_state["authenticated"] = True
+        st.session_state["role"] = "analyst"
+        st.session_state["user"] = analyst_choice
+        st.switch_page("pages/30_Samuel_Home.py")
 
+st.write("---")
+st.caption("No real authentication is implemented. This is just persona switching for the demo.")
