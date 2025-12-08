@@ -6,8 +6,6 @@ from backend.db_connection import db
 profiles_plans_bp = Blueprint("profiles_plans_bp", __name__)
 
 
-
-
 # -------------------------------------------------------------------
 # Small helpers to make cursor results predictable (dicts + JSON-safe)
 # -------------------------------------------------------------------
@@ -20,7 +18,6 @@ def _row_to_dict(columns, row):
     """
     import datetime as _dt
 
-
     if isinstance(row, dict):
         out = {}
         for k, v in row.items():
@@ -29,7 +26,6 @@ def _row_to_dict(columns, row):
             else:
                 out[k] = v
         return out
-
 
     out = {}
     for idx, col in enumerate(columns):
@@ -41,8 +37,6 @@ def _row_to_dict(columns, row):
     return out
 
 
-
-
 def _fetch_one_dict(cursor):
     row = cursor.fetchone()
     if not row:
@@ -51,16 +45,12 @@ def _fetch_one_dict(cursor):
     return _row_to_dict(columns, row)
 
 
-
-
 def _fetch_all_dict(cursor):
     rows = cursor.fetchall()
     if not rows:
         return []
     columns = [col[0] for col in cursor.description]
     return [_row_to_dict(columns, row) for row in rows]
-
-
 
 
 # -------------------------------------------------------------------
@@ -74,7 +64,6 @@ def get_diet_profile():
     Get the dietary preference profile for a user.
     Query params: user_id (required)
 
-
     Returns JSON:
       {
         "user_id": ...,
@@ -87,10 +76,8 @@ def get_diet_profile():
         if not user_id:
             return jsonify({"error": "user_id query parameter is required"}), 400
 
-
         conn = db.get_db()
         cursor = conn.cursor()  # type: ignore
-
 
         cursor.execute(
             """
@@ -103,10 +90,8 @@ def get_diet_profile():
         row = _fetch_one_dict(cursor)
         cursor.close()
 
-
         if not row:
             return jsonify({"error": "Diet profile not found"}), 404
-
 
         # Normalize keys for the frontend
         result = {
@@ -120,13 +105,10 @@ def get_diet_profile():
         return jsonify({"error": str(e)}), 500
 
 
-
-
 @profiles_plans_bp.route("/diet-profile", methods=["POST"])
 def create_diet_profile():
     """
     Create a new dietary preference profile.
-
 
     Body JSON:
       {
@@ -141,13 +123,11 @@ def create_diet_profile():
         diet_types = data.get("diet_types")
         notes = data.get("notes")
 
-
         missing = []
         if user_id is None:
             missing.append("user_id")
         if not diet_types:
             missing.append("diet_types")
-
 
         if missing:
             return (
@@ -155,10 +135,8 @@ def create_diet_profile():
                 400,
             )
 
-
         conn = db.get_db()
         cursor = conn.cursor()  # type: ignore
-
 
         # Ensure we don't create duplicates
         cursor.execute(
@@ -172,7 +150,6 @@ def create_diet_profile():
                 ),
                 400,
             )
-
 
         cursor.execute(
             """
@@ -189,17 +166,14 @@ def create_diet_profile():
         return jsonify({"error": str(e)}), 500
 
 
-
-
 @profiles_plans_bp.route("/diet-profile", methods=["PUT"])
 def update_diet_profile():
     """
     Update an existing dietary preference profile.
 
-
     Body JSON:
       {
-        "user_id": 3,                 # required
+        "user_id": 3,                     # required
         "diet_types": "vegetarian,...",   # optional
         "notes": "..."                    # optional
       }
@@ -210,10 +184,8 @@ def update_diet_profile():
         if not user_id:
             return jsonify({"error": "user_id is required"}), 400
 
-
         updates = []
         params = []
-
 
         if "diet_types" in data:
             updates.append("DietTypes = %s")
@@ -222,13 +194,10 @@ def update_diet_profile():
             updates.append("Notes = %s")
             params.append(data["notes"])
 
-
         if not updates:
             return jsonify({"error": "No updatable fields provided"}), 400
 
-
         params.append(user_id)
-
 
         conn = db.get_db()
         cursor = conn.cursor()  # type: ignore
@@ -239,20 +208,13 @@ def update_diet_profile():
         """
         cursor.execute(query, tuple(params))
         conn.commit()  # type: ignore
-        affected = cursor.rowcount
+        # rowcount may be 0 if values are unchanged; that's still success
         cursor.close()
-
-
-        if affected == 0:
-            return jsonify({"error": "Diet profile not found"}), 404
-
 
         return jsonify({"message": "Diet profile updated"}), 200
     except Exception as e:
         current_app.logger.error(f"Error in update_diet_profile: {e}")
         return jsonify({"error": str(e)}), 500
-
-
 
 
 # -------------------------------------------------------------------
@@ -266,7 +228,6 @@ def get_budget_profile():
     Get the grocery budget profile for a user.
     Query params: user_id (required)
 
-
     Returns JSON:
       {
         "user_id": ...,
@@ -278,7 +239,6 @@ def get_budget_profile():
         user_id = request.args.get("user_id", type=int)
         if not user_id:
             return jsonify({"error": "user_id query parameter is required"}), 400
-
 
         conn = db.get_db()
         cursor = conn.cursor()  # type: ignore
@@ -293,10 +253,8 @@ def get_budget_profile():
         row = _fetch_one_dict(cursor)
         cursor.close()
 
-
         if not row:
             return jsonify({"error": "Budget profile not found"}), 404
-
 
         result = {
             "user_id": row.get("UserID") or row.get("user_id"),
@@ -310,13 +268,10 @@ def get_budget_profile():
         return jsonify({"error": str(e)}), 500
 
 
-
-
 @profiles_plans_bp.route("/budget-profile", methods=["POST"])
 def create_budget_profile():
     """
     Create a new grocery budget profile.
-
 
     Body JSON:
       {
@@ -331,7 +286,6 @@ def create_budget_profile():
         amount = data.get("weekly_budget_amount", data.get("weekly_budget"))
         currency = data.get("currency")
 
-
         missing = []
         if user_id is None:
             missing.append("user_id")
@@ -340,17 +294,14 @@ def create_budget_profile():
         if not currency:
             missing.append("currency")
 
-
         if missing:
             return (
                 jsonify({"error": f"Missing required fields: {', '.join(missing)}"}),
                 400,
             )
 
-
         conn = db.get_db()
         cursor = conn.cursor()  # type: ignore
-
 
         cursor.execute(
             "SELECT 1 FROM UserBudgetProfile WHERE UserID = %s", (user_id,)
@@ -363,7 +314,6 @@ def create_budget_profile():
                 ),
                 400,
             )
-
 
         cursor.execute(
             """
@@ -380,13 +330,10 @@ def create_budget_profile():
         return jsonify({"error": str(e)}), 500
 
 
-
-
 @profiles_plans_bp.route("/budget-profile", methods=["PUT"])
 def update_budget_profile():
     """
     Update an existing budget profile.
-
 
     Body JSON:
       {
@@ -401,10 +348,8 @@ def update_budget_profile():
         if not user_id:
             return jsonify({"error": "user_id is required"}), 400
 
-
         updates = []
         params = []
-
 
         if "weekly_budget_amount" in data or "weekly_budget" in data:
             updates.append("WeeklyBudgetAmount = %s")
@@ -415,13 +360,10 @@ def update_budget_profile():
             updates.append("Currency = %s")
             params.append(data["currency"])
 
-
         if not updates:
             return jsonify({"error": "No updatable fields provided"}), 400
 
-
         params.append(user_id)
-
 
         conn = db.get_db()
         cursor = conn.cursor()  # type: ignore
@@ -432,20 +374,13 @@ def update_budget_profile():
         """
         cursor.execute(query, tuple(params))
         conn.commit()  # type: ignore
-        affected = cursor.rowcount
+        # rowcount may be 0 if nothing actually changed; treat as success
         cursor.close()
-
-
-        if affected == 0:
-            return jsonify({"error": "Budget profile not found"}), 404
-
 
         return jsonify({"message": "Budget profile updated"}), 200
     except Exception as e:
         current_app.logger.error(f"Error in update_budget_profile: {e}")
         return jsonify({"error": str(e)}), 500
-
-
 
 
 # -------------------------------------------------------------------
@@ -461,7 +396,6 @@ def get_meal_plans():
       - user_id (required)
       - current_only (optional, bool-like 'true'/'false')
 
-
     Returns a list of:
       {
         "MealPlanID": ...,
@@ -476,11 +410,9 @@ def get_meal_plans():
         if not user_id:
             return jsonify({"error": "user_id query parameter is required"}), 400
 
-
         current_only = (
             request.args.get("current_only", default="false").lower() == "true"
         )
-
 
         conn = db.get_db()
         cursor = conn.cursor()  # type: ignore
@@ -492,7 +424,6 @@ def get_meal_plans():
         params = [user_id]
         if current_only:
             query += " AND StartDate <= CURDATE() AND EndDate >= CURDATE()"
-
 
         query += " ORDER BY StartDate DESC"
         cursor.execute(query, tuple(params))
@@ -509,7 +440,6 @@ def create_meal_plan():
     """
     Create a new meal plan and optional entries.
 
-
     Frontend (Jordan page) sends something like:
       {
         "user_id": 3,
@@ -519,7 +449,6 @@ def create_meal_plan():
         "include_leftovers": true
       }
 
-
     This endpoint:
       - Computes end_date = start_date + 6 days if not provided.
       - Auto-generates MealPlanEntry rows if "entries" not provided.
@@ -528,7 +457,6 @@ def create_meal_plan():
     try:
         data = request.get_json() or {}
 
-
         user_id = data.get("user_id")
         start_date_str = data.get("start_date")
         end_date_str = data.get("end_date")  # optional
@@ -536,13 +464,11 @@ def create_meal_plan():
         is_saved = bool(data.get("is_saved", True))
         entries = data.get("entries")  # optional manual entries
 
-
         missing = []
         if user_id is None:
             missing.append("user_id")
         if not start_date_str:
             missing.append("start_date")
-
 
         if missing:
             return (
@@ -550,10 +476,8 @@ def create_meal_plan():
                 400,
             )
 
-
         # Parse start date
-        start_dt = datetime.strptime(start_date_str, "%Y-%m-%d").date() # type: ignore
-
+        start_dt = datetime.strptime(start_date_str, "%Y-%m-%d").date()  # type: ignore
 
         # Derive end date if not provided (7-day plan)
         if not end_date_str:
@@ -561,7 +485,6 @@ def create_meal_plan():
             end_date_str = end_dt.isoformat()
         else:
             end_dt = datetime.strptime(end_date_str, "%Y-%m-%d").date()
-
 
         # If no entries given, auto-generate simple placeholders
         if entries is None:
@@ -579,10 +502,8 @@ def create_meal_plan():
                         }
                     )
 
-
         conn = db.get_db()
         cursor = conn.cursor()  # type: ignore
-
 
         # Grab a pool of active recipes and assign them randomly
         cursor.execute(
@@ -598,15 +519,12 @@ def create_meal_plan():
             if r.get("RecipeId") is not None
         ]
 
-
         if recipe_ids:
             import random
-
 
             for entry in entries:
                 if entry.get("recipe_id") is None:
                     entry["recipe_id"] = random.choice(recipe_ids)
-
 
         # Generate next MealPlanID
         cursor.execute(
@@ -614,7 +532,6 @@ def create_meal_plan():
         )
         next_id_row = _fetch_one_dict(cursor)
         meal_plan_id = next_id_row.get("next_id") if next_id_row else 1
-
 
         # Insert plan
         cursor.execute(
@@ -624,7 +541,6 @@ def create_meal_plan():
             """,
             (meal_plan_id, user_id, start_date_str, end_date_str, 1 if is_saved else 0),
         )
-
 
         # Insert entries
         for entry in entries:
@@ -643,10 +559,8 @@ def create_meal_plan():
                 ),
             )
 
-
         conn.commit()  # type: ignore
         cursor.close()
-
 
         return jsonify({"message": "Meal plan created", "meal_plan_id": meal_plan_id}), 201
     except Exception as e:
@@ -658,7 +572,6 @@ def create_meal_plan():
 def get_meal_plan_detail(meal_plan_id: int):
     """
     Get details of a single meal plan with its entries.
-
 
     Returns:
       {
@@ -684,7 +597,6 @@ def get_meal_plan_detail(meal_plan_id: int):
         conn = db.get_db()
         cursor = conn.cursor()  # type: ignore
 
-
         # Fetch plan header
         cursor.execute(
             """
@@ -698,7 +610,6 @@ def get_meal_plan_detail(meal_plan_id: int):
         if not plan:
             cursor.close()
             return jsonify({"error": "Meal plan not found"}), 404
-
 
         # Fetch entries, joined with recipes for RecipeName
         cursor.execute(
@@ -719,12 +630,12 @@ def get_meal_plan_detail(meal_plan_id: int):
         entries = _fetch_all_dict(cursor)
         cursor.close()
 
-
         plan["entries"] = entries
         return jsonify(plan), 200
     except Exception as e:
         current_app.logger.error(f"Error in get_meal_plan_detail: {e}")
         return jsonify({"error": str(e)}), 500
+
 
 @profiles_plans_bp.route("/meal-plans/<int:meal_plan_id>", methods=["DELETE"])
 def delete_meal_plan(meal_plan_id: int):
@@ -734,7 +645,6 @@ def delete_meal_plan(meal_plan_id: int):
     try:
         conn = db.get_db()
         cursor = conn.cursor()  # type: ignore
-
 
         # Delete entries first
         cursor.execute(
@@ -750,15 +660,12 @@ def delete_meal_plan(meal_plan_id: int):
         affected = cursor.rowcount
         cursor.close()
 
-
         if affected == 0:
             return jsonify({"error": "Meal plan not found"}), 404
-
 
         return jsonify({"message": "Meal plan deleted"}), 200
     except Exception as e:
         current_app.logger.error(f"Error in delete_meal_plan: {e}")
         return jsonify({"error": str(e)}), 500
-
 
 
